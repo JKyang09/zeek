@@ -143,25 +143,25 @@ Val* Val::DoClone(CloneState* state)
 	return nullptr;
  	}
 
-int Val::IsZero() const
+bool Val::IsZero() const
 	{
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:		return val.int_val == 0;
 	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 0;
 	case TYPE_INTERNAL_DOUBLE:	return val.double_val == 0.0;
 
-	default:			return 0;
+	default:			return false;
 	}
 	}
 
-int Val::IsOne() const
+bool Val::IsOne() const
 	{
 	switch ( type->InternalType() ) {
 	case TYPE_INTERNAL_INT:		return val.int_val == 1;
 	case TYPE_INTERNAL_UNSIGNED:	return val.uint_val == 1;
 	case TYPE_INTERNAL_DOUBLE:	return val.double_val == 1.0;
 
-	default:			return 0;
+	default:			return false;
 	}
 	}
 
@@ -277,16 +277,16 @@ unsigned int Val::MemoryAllocation() const
 	return padded_sizeof(*this);
 	}
 
-int Val::AddTo(Val* v, int is_first_init) const
+bool Val::AddTo(Val* v, bool is_first_init) const
 	{
 	Error("+= initializer only applies to aggregate values");
-	return 0;
+	return false;
 	}
 
-int Val::RemoveFrom(Val* v) const
+bool Val::RemoveFrom(Val* v) const
 	{
 	Error("-= initializer only applies to aggregate values");
-	return 0;
+	return false;
 	}
 
 void Val::Describe(ODesc* d) const
@@ -790,17 +790,17 @@ string PortVal::Protocol() const
 		return "unknown";
 	}
 
-int PortVal::IsTCP() const
+bool PortVal::IsTCP() const
 	{
 	return (val.uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
 	}
 
-int PortVal::IsUDP() const
+bool PortVal::IsUDP() const
 	{
 	return (val.uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK;
 	}
 
-int PortVal::IsICMP() const
+bool PortVal::IsICMP() const
 	{
 	return (val.uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK;
 	}
@@ -1131,12 +1131,12 @@ PatternVal::~PatternVal()
 	Unref(type);	// base_type() ref'd it, so did our base constructor
 	}
 
-int PatternVal::AddTo(Val* v, int /* is_first_init */) const
+bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const
 	{
 	if ( v->Type()->Tag() != TYPE_PATTERN )
 		{
 		v->Error("not a pattern");
-		return 0;
+		return false;
 		}
 
 	PatternVal* pv = v->AsPatternVal();
@@ -1147,7 +1147,7 @@ int PatternVal::AddTo(Val* v, int /* is_first_init */) const
 
 	pv->SetMatcher(re);
 
-	return 1;
+	return true;
 	}
 
 void PatternVal::SetMatcher(RE_Matcher* re)
@@ -1442,20 +1442,20 @@ void TableVal::CheckExpireAttr(attr_tag at)
 		}
 	}
 
-int TableVal::Assign(Val* index, Val* new_val)
+bool TableVal::Assign(Val* index, Val* new_val)
 	{
 	HashKey* k = ComputeHash(index);
 	if ( ! k )
 		{
 		Unref(new_val);
 		index->Error("index type doesn't match table", table_type->Indices());
-		return 0;
+		return false;
 		}
 
 	return Assign(index, k, new_val);
 	}
 
-int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
+bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	{
 	int is_set = table_type->IsSet();
 
@@ -1504,20 +1504,20 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 		delete old_entry_val;
 		}
 
-	return 1;
+	return true;
 	}
 
-int TableVal::AddTo(Val* val, int is_first_init) const
+bool TableVal::AddTo(Val* val, bool is_first_init) const
 	{
 	return AddTo(val, is_first_init, true);
 	}
 
-int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
+bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 	{
 	if ( val->Type()->Tag() != TYPE_TABLE )
 		{
 		val->Error("not a table");
-		return 0;
+		return false;
 		}
 
 	TableVal* t = val->AsTableVal();
@@ -1525,7 +1525,7 @@ int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
 	if ( ! same_type(type, t->Type()) )
 		{
 		type->Error("table type clash", t->Type());
-		return 0;
+		return false;
 		}
 
 	const PDict<TableEntryVal>* tbl = AsTable();
@@ -1547,25 +1547,25 @@ int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
 		if ( type->IsSet() )
 			{
 			if ( ! t->Assign(v->Value(), k, 0) )
-				 return 0;
+				 return false;
 			}
 		else
 			{
 			v->Ref();
 			if ( ! t->Assign(0, k, v->Value()) )
-				 return 0;
+				 return false;
 			}
 		}
 
-	return 1;
+	return true;
 	}
 
-int TableVal::RemoveFrom(Val* val) const
+bool TableVal::RemoveFrom(Val* val) const
 	{
 	if ( val->Type()->Tag() != TYPE_TABLE )
 		{
 		val->Error("not a table");
-		return 0;
+		return false;
 		}
 
 	TableVal* t = val->AsTableVal();
@@ -1573,7 +1573,7 @@ int TableVal::RemoveFrom(Val* val) const
 	if ( ! same_type(type, t->Type()) )
 		{
 		type->Error("table type clash", t->Type());
-		return 0;
+		return false;
 		}
 
 	const PDict<TableEntryVal>* tbl = AsTable();
@@ -1591,7 +1591,7 @@ int TableVal::RemoveFrom(Val* val) const
 		delete k;
 		}
 
-	return 1;
+	return true;
 	}
 
 TableVal* TableVal::Intersect(const TableVal* tv) const
@@ -1679,7 +1679,7 @@ bool TableVal::IsSubsetOf(const TableVal* tv) const
 	return true;
 	}
 
-int TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
+bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	{
 	BroType* index_type = index->Type();
 
@@ -1701,9 +1701,9 @@ int TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 
 		for ( int i = 0; i < iv->Length(); ++i )
 			if ( ! ExpandAndInit({NewRef{}, iv->Index(i)}, new_val) )
-				return 0;
+				return false;
 
-		return 1;
+		return true;
 		}
 
 	else
@@ -2188,7 +2188,7 @@ void TableVal::Describe(ODesc* d) const
 		}
 	}
 
-int TableVal::ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val)
+bool TableVal::ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val)
 	{
 	Val* ind_k_v = (*vl)[k];
 	auto ind_k = ind_k_v->Type()->IsSet() ?
@@ -2207,16 +2207,14 @@ int TableVal::ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_v
 				expd->Append((*vl)[j]->Ref());
 			}
 
-		int success = ExpandAndInit(std::move(expd), new_val);
-
-		if ( ! success )
-			return 0;
+		if ( ! ExpandAndInit(std::move(expd), new_val) )
+			return false;
 		}
 
-	return 1;
+	return true;
 	}
 
-int TableVal::CheckAndAssign(Val* index, IntrusivePtr<Val> new_val)
+bool TableVal::CheckAndAssign(Val* index, IntrusivePtr<Val> new_val)
 	{
 	Val* v = 0;
 	if ( subnets )
@@ -2952,12 +2950,12 @@ bool VectorVal::Remove(unsigned int index)
 	return true;
 	}
 
-int VectorVal::AddTo(Val* val, int /* is_first_init */) const
+bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	{
 	if ( val->Type()->Tag() != TYPE_VECTOR )
 		{
 		val->Error("not a vector");
-		return 0;
+		return false;
 		}
 
 	VectorVal* v = val->AsVectorVal();
@@ -2965,7 +2963,7 @@ int VectorVal::AddTo(Val* val, int /* is_first_init */) const
 	if ( ! same_type(type, v->Type()) )
 		{
 		type->Error("vector type clash", v->Type());
-		return 0;
+		return false;
 		}
 
 	auto last_idx = v->Size();
@@ -2973,7 +2971,7 @@ int VectorVal::AddTo(Val* val, int /* is_first_init */) const
 	for ( auto i = 0u; i < Size(); ++i )
 		v->Assign(last_idx++, Lookup(i)->Ref());
 
-	return 1;
+	return true;
 	}
 
 Val* VectorVal::Lookup(unsigned int index) const
@@ -3036,7 +3034,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 	}
 
 IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
-                                    int is_init,
+                                    bool is_init,
                                     const Location* expr_location)
 	{
 	if ( ! v )
@@ -3143,10 +3141,10 @@ IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
 	return promoted_v;
 	}
 
-int same_val(const Val* /* v1 */, const Val* /* v2 */)
+bool same_val(const Val* /* v1 */, const Val* /* v2 */)
 	{
 	reporter->InternalError("same_val not implemented");
-	return 0;
+	return false;
 	}
 
 bool is_atomic_val(const Val* v)
@@ -3154,12 +3152,12 @@ bool is_atomic_val(const Val* v)
 	return is_atomic_type(v->Type());
 	}
 
-int same_atomic_val(const Val* v1, const Val* v2)
+bool same_atomic_val(const Val* v1, const Val* v2)
 	{
 	// This is a very preliminary implementation of same_val(),
 	// true only for equal, simple atomic values of same type.
 	if ( v1->Type()->Tag() != v2->Type()->Tag() )
-		return 0;
+		return false;
 
 	switch ( v1->Type()->InternalType() ) {
 	case TYPE_INTERNAL_INT:
@@ -3177,10 +3175,10 @@ int same_atomic_val(const Val* v1, const Val* v2)
 
 	default:
 		reporter->InternalWarning("same_atomic_val called for non-atomic value");
-		return 0;
+		return false;
 	}
 
-	return 0;
+	return false;
 	}
 
 void describe_vals(const val_list* vals, ODesc* d, int offset)

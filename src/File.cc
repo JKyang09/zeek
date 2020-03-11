@@ -205,25 +205,26 @@ void BroFile::SetBuf(bool arg_buffered)
 	buffered = arg_buffered;
 	}
 
-int BroFile::Close()
+bool BroFile::Close()
 	{
 	if ( ! is_open )
-		return 1;
+		return true;
 
 	// Do not close stdin/stdout/stderr.
 	if ( f == stdin || f == stdout || f == stderr )
-		return 0;
+		return false;
 
 	if ( ! f )
-		return 0;
+		return false;
 
 	fclose(f);
 	f = nullptr;
-	open_time = is_open = 0;
+	open_time = 0;
+	is_open = false;
 
 	Unlink();
 
-	return 1;
+	return true;
 	}
 
 void BroFile::Unlink()
@@ -307,10 +308,10 @@ void BroFile::CloseOpenFiles()
 		}
 	}
 
-int BroFile::Write(const char* data, int len)
+bool BroFile::Write(const char* data, int len)
 	{
 	if ( ! is_open )
-		return 0;
+		return false;
 
 	if ( ! len )
 		len = strlen(data);
@@ -357,4 +358,3 @@ BroFile* BroFile::GetFile(const char* name)
 
 	return new BroFile(name, "w", 0);
 	}
-

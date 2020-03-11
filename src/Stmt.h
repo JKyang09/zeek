@@ -35,7 +35,7 @@ public:
 	bool SetLocationInfo(const Location* start, const Location* end) override;
 
 	// True if the statement has no side effects, false otherwise.
-	virtual int IsPure() const;
+	virtual bool IsPure() const;
 
 	StmtList* AsStmtList()
 		{
@@ -130,7 +130,7 @@ protected:
 
 	virtual IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	IntrusivePtr<Expr> e;
 };
@@ -149,7 +149,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	IntrusivePtr<Stmt> s1;
 	IntrusivePtr<Stmt> s2;
@@ -194,7 +194,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	// Initialize composite hash and case label map.
 	void Init();
@@ -226,7 +226,7 @@ class AddStmt : public ExprStmt {
 public:
 	explicit AddStmt(IntrusivePtr<Expr> e);
 
-	int IsPure() const override;
+	bool IsPure() const override;
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -236,7 +236,7 @@ class DelStmt : public ExprStmt {
 public:
 	explicit DelStmt(IntrusivePtr<Expr> e);
 
-	int IsPure() const override;
+	bool IsPure() const override;
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -260,7 +260,7 @@ public:
 	WhileStmt(IntrusivePtr<Expr> loop_condition, IntrusivePtr<Stmt> body);
 	~WhileStmt() override;
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -286,7 +286,7 @@ public:
 	const Expr* LoopExpr() const	{ return e.get(); }
 	const Stmt* LoopBody() const	{ return body.get(); }
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -307,7 +307,7 @@ public:
 	NextStmt() : Stmt(STMT_NEXT)	{ }
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -321,7 +321,7 @@ public:
 	BreakStmt() : Stmt(STMT_BREAK)	{ }
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -335,7 +335,7 @@ public:
 	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -368,7 +368,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	stmt_list stmts;
 };
@@ -413,7 +413,7 @@ public:
 	NullStmt() : Stmt(STMT_NULL)	{ }
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -429,7 +429,7 @@ public:
 	~WhenStmt() override;
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	const Expr* Cond() const	{ return cond.get(); }
 	const Stmt* Body() const	{ return s1.get(); }

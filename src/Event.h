@@ -98,7 +98,7 @@ public:
 	void Drain();
 	bool IsDraining() const	{ return draining; }
 
-	int HasEvents() const	{ return head != 0; }
+	bool HasEvents() const	{ return head != 0; }
 
 	// Returns the source ID of last raised event.
 	SourceID CurrentSource() const	{ return current_src; }

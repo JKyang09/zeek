@@ -83,7 +83,7 @@ public:
 	// If record_content is true, then its entire contents should
 	// be recorded, otherwise just up through the transport header.
 	// Both are assumed set to true when called.
-	void NextPacket(double t, int is_orig,
+	void NextPacket(double t, bool is_orig,
 			const IP_Hdr* ip, int len, int caplen,
 			const u_char*& data,
 			int& record_packet, int& record_content,
@@ -122,12 +122,12 @@ public:
 	// True if we should record subsequent packets (either headers or
 	// in their entirety, depending on record_contents).  We still
 	// record subsequent SYN/FIN/RST, regardless of how this is set.
-	int RecordPackets() const		{ return record_packets; }
+	bool RecordPackets() const		{ return record_packets; }
 	void SetRecordPackets(int do_record)	{ record_packets = do_record; }
 
 	// True if we should record full packets for this connection,
 	// false if we should just record headers.
-	int RecordContents() const		{ return record_contents; }
+	bool RecordContents() const		{ return record_contents; }
 	void SetRecordContents(int do_record)	{ record_contents = do_record; }
 
 	// Set whether to record *current* packet header/full.
@@ -142,7 +142,7 @@ public:
 	// that this does not in itself imply that record_packets is false;
 	// we might want instead to process the connection off-line.
 	void SetSkip(int do_skip)		{ skip = do_skip; }
-	int Skipping() const			{ return skip; }
+	bool Skipping() const			{ return skip; }
 
 	// Arrange for the connection to expire after the given amount of time.
 	void SetLifetime(double lifetime);

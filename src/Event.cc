@@ -46,9 +46,7 @@ void Event::Describe(ODesc* d) const
 	if ( d->IsReadable() )
 		d->AddSP("event");
 
-	int s = d->IsShort();
-	d->SetShort();
-//	handler->Describe(d);
+	bool s = d->IsShort();
 	d->SetShort(s);
 
 	if ( ! d->IsBinary() )

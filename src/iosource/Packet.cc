@@ -19,7 +19,7 @@ extern "C" {
 }
 
 void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
-		  uint32_t arg_len, const u_char *arg_data, int arg_copy,
+		  uint32_t arg_len, const u_char *arg_data, bool arg_copy,
 		  std::string arg_tag)
 	{
 	if ( data && copy )

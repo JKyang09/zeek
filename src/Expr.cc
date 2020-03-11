@@ -2454,7 +2454,7 @@ bool AssignExpr::IsPure() const
 	}
 
 IndexSliceAssignExpr::IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
-                                           IntrusivePtr<Expr> op2, int is_init)
+                                           IntrusivePtr<Expr> op2, bool is_init)
 	: AssignExpr(std::move(op1), std::move(op2), is_init)
 	{
 	}
@@ -4817,7 +4817,7 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 	}
 
 RecordAssignExpr::RecordAssignExpr(IntrusivePtr<Expr> record,
-                                   IntrusivePtr<Expr> init_list, int is_init)
+                                   IntrusivePtr<Expr> init_list, bool is_init)
 	{
 	const expr_list& inits = init_list->AsListExpr()->Exprs();
 
@@ -4948,7 +4948,7 @@ void IsExpr::ExprDescribe(ODesc* d) const
 	}
 
 IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
-                                   IntrusivePtr<Expr> op2, int is_init)
+                                   IntrusivePtr<Expr> op2, bool is_init)
 	{
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
 	     op2->Type()->Tag() == TYPE_LIST )
@@ -4964,35 +4964,35 @@ IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
 		                                  is_init);
 	}
 
-int check_and_promote_expr(Expr*& e, BroType* t)
+bool check_and_promote_expr(Expr*& e, BroType* t)
 	{
 	BroType* et = e->Type();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
 	if ( t->Tag() == TYPE_ANY )
-		return 1;
+		return true;
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
 		if ( e_tag == t_tag )
-			return 1;
+			return true;
 
 		if ( ! BothArithmetic(t_tag, e_tag) )
 			{
 			t->Error("arithmetic mixed with non-arithmetic", e);
-			return 0;
+			return false;
 			}
 
 		TypeTag mt = max_type(t_tag, e_tag);
 		if ( mt != t_tag )
 			{
 			t->Error("over-promotion of arithmetic value", e);
-			return 0;
+			return false;
 			}
 
 		e = new ArithCoerceExpr({AdoptRef{}, e}, t_tag);
-		return 1;
+		return true;
 		}
 
 	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
@@ -5010,18 +5010,18 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 
 				if ( same_attrs(td1->attrs, td2->attrs) )
 					// Everything matches perfectly.
-					return 1;
+					return true;
 				}
 			}
 
 		if ( record_promotion_compatible(t_r, et_r) )
 			{
 			e = new RecordCoerceExpr({AdoptRef{}, e}, {NewRef{}, t_r});
-			return 1;
+			return true;
 			}
 
 		t->Error("incompatible record types", e);
-		return 0;
+		return false;
 		}
 
 
@@ -5031,35 +5031,35 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 			  et->AsTableType()->IsUnspecifiedTable() )
 			{
 			e = new TableCoerceExpr({AdoptRef{}, e}, {NewRef{}, t->AsTableType()});
-			return 1;
+			return true;
 			}
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )
 			{
 			e = new VectorCoerceExpr({AdoptRef{}, e}, {NewRef{}, t->AsVectorType()});
-			return 1;
+			return true;
 			}
 
 		t->Error("type clash", e);
-		return 0;
+		return false;
 		}
 
-	return 1;
+	return true;
 	}
 
-int check_and_promote_exprs(ListExpr* const elements, TypeList* types)
+bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	{
 	expr_list& el = elements->Exprs();
 	const type_list* tl = types->Types();
 
 	if ( tl->length() == 1 && (*tl)[0]->Tag() == TYPE_ANY )
-		return 1;
+		return true;
 
 	if ( el.length() != tl->length() )
 		{
 		types->Error("indexing mismatch", elements);
-		return 0;
+		return false;
 		}
 
 	loop_over_list(el, i)
@@ -5068,24 +5068,24 @@ int check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 		if ( ! check_and_promote_expr(e, (*tl)[i]) )
 			{
 			e->Error("type mismatch", (*tl)[i]);
-			return 0;
+			return false;
 			}
 
 		if ( e != el[i] )
 			el.replace(i, e);
 		}
 
-	return 1;
+	return true;
 	}
 
-int check_and_promote_args(ListExpr* const args, RecordType* types)
+bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	{
 	expr_list& el = args->Exprs();
 	int ntypes = types->NumFields();
 
 	// give variadic BIFs automatic pass
 	if ( ntypes == 1 && types->FieldDecl(0)->type->Tag() == TYPE_ANY )
-		return 1;
+		return true;
 
 	if ( el.length() < ntypes )
 		{
@@ -5101,7 +5101,7 @@ int check_and_promote_args(ListExpr* const args, RecordType* types)
 			if ( ! def_attr )
 				{
 				types->Error("parameter mismatch", args);
-				return 0;
+				return false;
 				}
 
 			def_elements.push_front(def_attr->AttrExpr());
@@ -5122,12 +5122,12 @@ int check_and_promote_args(ListExpr* const args, RecordType* types)
 	return rval;
 	}
 
-int check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
+bool check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 	{
 	expr_list& el = elements->Exprs();
 
 	if ( type->Tag() == TYPE_ANY )
-		return 1;
+		return true;
 
 	loop_over_list(el, i)
 		{
@@ -5135,14 +5135,14 @@ int check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 		if ( ! check_and_promote_expr(e, type) )
 			{
 			e->Error("type mismatch", type);
-			return 0;
+			return false;
 			}
 
 		if ( e != el[i] )
 			el.replace(i, e);
 		}
 
-	return 1;
+	return true;
 	}
 
 val_list* eval_list(Frame* f, const ListExpr* l)

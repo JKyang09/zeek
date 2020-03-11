@@ -31,7 +31,7 @@ static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
 
 static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
                      IntrusivePtr<Expr> init, attr_list* attr, decl_type dt,
-                     int do_init)
+                     bool do_init)
 	{
 	if ( id->Type() )
 		{
@@ -224,14 +224,14 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 void add_global(ID* id, IntrusivePtr<BroType> t, init_class c,
                 IntrusivePtr<Expr> init, attr_list* attr, decl_type dt)
 	{
-	make_var(id, std::move(t), c, std::move(init), attr, dt, 1);
+	make_var(id, std::move(t), c, std::move(init), attr, dt, true);
 	}
 
 IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
                              init_class c, IntrusivePtr<Expr> init,
                              attr_list* attr, decl_type dt)
 	{
-	make_var(id.get(), std::move(t), c, init, attr, dt, 0);
+	make_var(id.get(), std::move(t), c, init, attr, dt, false);
 
 	if ( init )
 		{
@@ -263,10 +263,10 @@ extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
                                                IntrusivePtr<Expr> init,
                                                IntrusivePtr<Val> val)
 	{
-	make_var(id.get(), 0, INIT_FULL, init, 0, VAR_REGULAR, 0);
+	make_var(id.get(), nullptr, INIT_FULL, init, nullptr, VAR_REGULAR, false);
 	auto name_expr = make_intrusive<NameExpr>(std::move(id));
 	return make_intrusive<AssignExpr>(std::move(name_expr), std::move(init),
-	                                  0, std::move(val));
+	                                  false, std::move(val));
 	}
 
 void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
@@ -338,7 +338,7 @@ static bool has_attr(const attr_list* al, attr_tag tag)
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
-                int is_redef, IntrusivePtr<FuncType> t, attr_list* attrs)
+                bool is_redef, IntrusivePtr<FuncType> t, attr_list* attrs)
 	{
 	if ( flavor == FUNC_FLAVOR_EVENT )
 		{

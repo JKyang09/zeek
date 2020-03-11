@@ -102,7 +102,7 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 		else if ( expr->Tag() == EXPR_CONST )
 			{
 			ODesc dd;
-			dd.SetQuotes(1);
+			dd.SetQuotes(true);
 			expr->Describe(&dd);
 			string s = dd.Description();
 			add_long_expr_string(d, s, shorten);
@@ -634,4 +634,3 @@ bool Attributes::operator==(const Attributes& other) const
 
 	return true;
 	}
-

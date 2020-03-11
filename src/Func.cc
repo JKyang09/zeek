@@ -298,7 +298,7 @@ BroFunc::~BroFunc()
 		Unref(closure);
 	}
 
-int BroFunc::IsPure() const
+bool BroFunc::IsPure() const
 	{
 	return std::all_of(bodies.begin(), bodies.end(),
 		[](const Body& b) { return b.stmts->IsPure(); });
@@ -599,7 +599,7 @@ Stmt* BroFunc::AddInits(Stmt* body, id_list* inits)
 	}
 
 BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
-			int arg_is_pure)
+			bool arg_is_pure)
 : Func(BUILTIN_FUNC)
 	{
 	func = arg_func;
@@ -620,7 +620,7 @@ BuiltinFunc::~BuiltinFunc()
 	{
 	}
 
-int BuiltinFunc::IsPure() const
+bool BuiltinFunc::IsPure() const
 	{
 	return is_pure;
 	}
