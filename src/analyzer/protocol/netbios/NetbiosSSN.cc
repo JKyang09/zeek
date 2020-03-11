@@ -480,7 +480,7 @@ NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
 	else
 		{
 		ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,
-				network_time + netbios_ssn_session_timeout, 1,
+				network_time + netbios_ssn_session_timeout, true,
 				TIMER_NB_EXPIRE);
 		}
 	}
@@ -545,5 +545,5 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t)
 	else
 		ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,
 				t + netbios_ssn_session_timeout,
-				1, TIMER_NB_EXPIRE);
+				true, TIMER_NB_EXPIRE);
 	}

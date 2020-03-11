@@ -457,10 +457,10 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 	bool discard_this_chunk = false;
 
 	if ( resync_state == RESYNC_INIT )
-		{ 
+		{
 		// First time CheckResync is called. If the TCP endpoint
-		// is fully established we are in sync (since it's the first chunk 
-		// of data after the SYN if its not established we need to 
+		// is fully established we are in sync (since it's the first chunk
+		// of data after the SYN if its not established we need to
 		// resync.
 		tcp::TCP_Analyzer* tcp =
 			static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
@@ -735,7 +735,7 @@ RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
 	{
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,
-			network_time + rpc_timeout, 1, TIMER_RPC_EXPIRE);
+			network_time + rpc_timeout, true, TIMER_RPC_EXPIRE);
 	}
 
 RPC_Analyzer::~RPC_Analyzer()

@@ -127,7 +127,7 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 	{
 	// Set a timer to eventually time out this connection.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-				network_time + tcp_SYN_timeout, 0,
+				network_time + tcp_SYN_timeout, false,
 				TIMER_TCP_EXPIRE);
 
 	deferred_gen_event = close_deferred = 0;
@@ -495,7 +495,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 
 			if ( tcp_attempt_delay )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
-					t + tcp_attempt_delay, 1,
+					t + tcp_attempt_delay, true,
 					TIMER_TCP_ATTEMPT);
 			}
 		else
@@ -725,7 +725,7 @@ void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
 
 		if ( connection_reset )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ResetTimer,
-					t + tcp_reset_delay, 1,
+					t + tcp_reset_delay, true,
 					TIMER_TCP_RESET);
 		}
 	}
@@ -1561,7 +1561,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 	// ### if PQ_Element's were BroObj's, could just Ref the timer
 	// and adjust its value here, instead of creating a new timer.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer, t + tcp_session_timer,
-			0, TIMER_TCP_EXPIRE);
+			false, TIMER_TCP_EXPIRE);
 	}
 
 void TCP_Analyzer::ResetTimer(double /* t */)
@@ -1701,10 +1701,10 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 		// deleted out from under us.
 		if ( tcp_close_delay != 0.0 )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ConnDeleteTimer,
-				Conn()->LastTime() + tcp_close_delay, 0,
+				Conn()->LastTime() + tcp_close_delay, false,
 				TIMER_CONN_DELETE);
 		else
-			ADD_ANALYZER_TIMER(&TCP_Analyzer::DeleteTimer, Conn()->LastTime(), 0,
+			ADD_ANALYZER_TIMER(&TCP_Analyzer::DeleteTimer, Conn()->LastTime(), false,
 					TIMER_TCP_DELETE);
 		}
 
@@ -1714,7 +1714,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			{ // First time we've seen anything from this side.
 			if ( connection_partial_close )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::PartialCloseTimer,
-					Conn()->LastTime() + tcp_partial_close_delay, 0,
+					Conn()->LastTime() + tcp_partial_close_delay, false,
 					TIMER_TCP_PARTIAL_CLOSE );
 			}
 
@@ -1723,7 +1723,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			// Create a timer to look for the other side closing,
 			// too.
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-					Conn()->LastTime() + tcp_session_timer, 0,
+					Conn()->LastTime() + tcp_session_timer, false,
 					TIMER_TCP_EXPIRE);
 			}
 		}

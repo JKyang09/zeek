@@ -727,7 +727,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
-			int do_expire, TimerType type)
+			bool do_expire, TimerType type)
 	{
 	Timer* analyzer_timer = new
 		AnalyzerTimer(this, timer, t, do_expire, type);
