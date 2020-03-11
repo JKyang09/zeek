@@ -241,7 +241,7 @@ public:
 		{ return current_connections; }
 
 	// Returns true if the history was already seen, false otherwise.
-	int CheckHistory(uint32_t mask, char code)
+	bool CheckHistory(uint32_t mask, char code)
 		{
 		if ( (hist_seen & mask) == 0 )
 			{

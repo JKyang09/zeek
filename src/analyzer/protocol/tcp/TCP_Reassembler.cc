@@ -479,7 +479,7 @@ void TCP_Reassembler::Deliver(uint64_t seq, int len, const u_char* data)
 		dst_analyzer->ForwardStream(len, data, IsOrig());
 	}
 
-int TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
+bool TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 				const u_char* data, TCP_Flags arg_flags, bool replaying)
 	{
 	uint64_t ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
@@ -492,13 +492,13 @@ int TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 		}
 
 	if ( skip_deliveries )
-		return 0;
+		return false;
 
 	if ( seq < ack && ! replaying )
 		{
 		if ( upper_seq <= ack )
 			// We've already delivered this and it's been acked.
-			return 0;
+			return false;
 
 		// We've seen an ack for part of this packet, but not the
 		// whole thing.  This can happen when, for example, a previous
@@ -531,7 +531,7 @@ int TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 		skip_deliveries = true;
 		}
 
-	return 1;
+	return true;
 	}
 
 
@@ -655,19 +655,19 @@ void TCP_Reassembler::SkipToSeq(uint64_t seq)
 		}
 	}
 
-int TCP_Reassembler::DataPending() const
+bool TCP_Reassembler::DataPending() const
 	{
 	// If we are skipping deliveries, the reassembler will not get called
 	// in DataSent(), and DataSeq() will not be updated.
 	if ( skip_deliveries )
-		return 0;
+		return false;
 
 	uint64_t delivered_seq = Endpoint()->StartSeqI64() + DataSeq();
 	uint64_t last_seq = TCP_Endpoint::ToFullSeqSpace(Endpoint()->LastSeq(),
 	                                               Endpoint()->SeqWraps());
 
 	if ( last_seq < delivered_seq )
-		return 0;
+		return false;
 
 	// Q. Can we say that?
 	// ASSERT(delivered_seq <= last_seq);
@@ -684,12 +684,12 @@ int TCP_Reassembler::DataPending() const
 	// sequence space), or right at it (because a RST does not).
 	if ( delivered_seq != last_seq - 1 &&
 	     delivered_seq != last_seq )
-		return 1;
+		return true;
 
 	// If we've sent RST, then we can't send ACKs any more.
 	if ( Endpoint()->state != TCP_ENDPOINT_RESET &&
 	     Endpoint()->peer->HasUndeliveredData() )
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 	}
