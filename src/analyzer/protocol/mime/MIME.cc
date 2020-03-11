@@ -98,12 +98,12 @@ static const char* MIMEContentEncodingName[] = {
 	0,
 };
 
-int is_null_data_chunk(data_chunk_t b)
+bool is_null_data_chunk(data_chunk_t b)
 	{
 	return b.data == 0;
 	}
 
-int is_lws(char ch)
+bool is_lws(char ch)
 	{
 	return ch == 9 || ch == 32;
 	}
@@ -250,7 +250,7 @@ int MIME_get_field_name(int len, const char* data, data_chunk_t* name)
 	}
 
 // See RFC 2045, page 12.
-int MIME_is_tspecial (char ch, bool is_boundary = false)
+static bool  MIME_is_tspecial (char ch, bool is_boundary = false)
 	{
 	if ( is_boundary )
 		return ch == '"';
@@ -260,12 +260,12 @@ int MIME_is_tspecial (char ch, bool is_boundary = false)
 		       ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '=';
 	}
 
-int MIME_is_field_name_char (char ch)
+bool MIME_is_field_name_char (char ch)
 	{
 	return ch >= 33 && ch <= 126 && ch != ':';
 	}
 
-int MIME_is_token_char (char ch, bool is_boundary = false)
+static bool MIME_is_token_char (char ch, bool is_boundary = false)
 	{
 	return ch >= 33 && ch <= 126 && ! MIME_is_tspecial(ch, is_boundary);
 	}
@@ -593,7 +593,7 @@ MIME_Entity::~MIME_Entity()
 	delete base64_decoder;
 	}
 
-void MIME_Entity::Deliver(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( in_header )
 		{
@@ -669,7 +669,7 @@ void MIME_Entity::EndOfData()
 	message->EndEntity (this);
 	}
 
-void MIME_Entity::NewDataLine(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::NewDataLine(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( content_type == CONTENT_TYPE_MULTIPART )
 		{
@@ -786,7 +786,7 @@ void MIME_Entity::ParseMIMEHeader(MIME_Header* h)
 	}
 	}
 
-int MIME_Entity::ParseContentTypeField(MIME_Header* h)
+bool MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	{
 	data_chunk_t val = h->get_value();
 	int len = val.length;
@@ -799,7 +799,7 @@ int MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	if ( offset < 0 )
 		{
 		IllegalFormat("media type/subtype not found in content type");
-		return 0;
+		return false;
 		}
 	data += offset;
 	len -= offset;
@@ -822,10 +822,10 @@ int MIME_Entity::ParseContentTypeField(MIME_Header* h)
 		content_subtype = CONTENT_SUBTYPE_OTHER;
 		}
 
-	return 1;
+	return true;
 	}
 
-int MIME_Entity::ParseContentEncodingField(MIME_Header* h)
+bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 	{
 	data_chunk_t enc;
 
@@ -833,7 +833,7 @@ int MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 	if ( is_null_data_chunk(enc) )
 		{
 		IllegalFormat("encoding type not found in content encoding");
-		return 0;
+		return false;
 		}
 
 	content_encoding_str = new BroString((const u_char*)enc.data, enc.length, 1);
@@ -846,14 +846,14 @@ int MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 			ParseFieldParameters(val.length, val.data);
 		}
 
-	return 1;
+	return true;
 	}
 
-int MIME_Entity::ParseFieldParameters(int len, const char* data)
+bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 	{
 	data_chunk_t attr;
 
-	while ( 1 )
+	while ( true )
 		{
 		int offset = MIME_skip_lws_comments(len, data);
 		if ( offset < 0 || offset >= len || data[offset] != ';' )
@@ -867,7 +867,7 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 		if ( offset < 0 )
 			{
 			IllegalFormat("attribute name not found in parameter specification");
-			return 0;
+			return false;
 			}
 
 		data += offset;
@@ -920,7 +920,7 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 		delete val;
 		}
 
-	return 1;
+	return true;
 	}
 
 void MIME_Entity::ParseContentType(data_chunk_t type, data_chunk_t sub_type)
@@ -1000,7 +1000,7 @@ int MIME_Entity::CheckBoundaryDelimiter(int len, const char* data)
 // trailing_CRLF indicates whether an implicit CRLF sequence follows data
 // (the CRLF sequence is not included in data).
 
-void MIME_Entity::DecodeDataLine(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::DecodeDataLine(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( ! mime_submit_data )
 		return;
@@ -1024,7 +1024,7 @@ void MIME_Entity::DecodeDataLine(int len, const char* data, int trailing_CRLF)
 	FlushData();
 	}
 
-void MIME_Entity::DecodeBinary(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::DecodeBinary(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( delay_adding_implicit_CRLF )
 		{
@@ -1175,17 +1175,17 @@ void MIME_Entity::FinishDecodeBase64()
 	base64_decoder = 0;
 	}
 
-int MIME_Entity::GetDataBuffer()
+bool MIME_Entity::GetDataBuffer()
 	{
 	int ret = message->RequestBuffer(&data_buf_length, &data_buf_data);
 	if ( ! ret || data_buf_length == 0 || data_buf_data == 0 )
 		{
 		// reporter->InternalError("cannot get data buffer from MIME_Message", "");
-		return 0;
+		return false;
 		}
 
 	data_buf_offset = 0;
-	return 1;
+	return true;
 	}
 
 void MIME_Entity::DataOctet(char ch)
@@ -1491,7 +1491,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();
 	}
 
-int MIME_Mail::RequestBuffer(int* plen, char** pbuf)
+bool MIME_Mail::RequestBuffer(int* plen, char** pbuf)
 	{
 	data_start = buffer_start - min_overlap_length;
 	if ( data_start < 0 )
@@ -1513,7 +1513,7 @@ int MIME_Mail::RequestBuffer(int* plen, char** pbuf)
 	*plen = max_chunk_length - overlap;
 	*pbuf = (char*) data_buffer->Bytes() + buffer_start;
 
-	return 1;
+	return true;
 	}
 
 void MIME_Mail::SubmitAllData()
