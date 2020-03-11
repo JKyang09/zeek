@@ -69,7 +69,7 @@ CompositeHash::~CompositeHash()
 	}
 
 // Computes the piece of the hash for Val*, returning the new kp.
-char* CompositeHash::SingleValHash(int type_check, char* kp0,
+char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				   BroType* bt, Val* v, bool optional) const
 	{
 	char* kp1 = 0;
@@ -339,7 +339,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 	}
 
 
-HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
+HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 	{
 	if ( ! v )
 		reporter->InternalError("null value given to CompositeHash::ComputeHash");
@@ -393,7 +393,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
 	return new HashKey((k == key), (void*) k, kp - k);
 	}
 
-HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
+HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) const
 	{
 	if ( v->Type()->Tag() == TYPE_LIST )
 		{
@@ -455,7 +455,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	}
 
 int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
-				     int type_check, int sz, bool optional,
+				     bool type_check, int sz, bool optional,
 				     bool calc_static_size) const
 	{
 	InternalTypeTag t = bt->InternalType();
@@ -635,7 +635,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 	return sz;
 	}
 
-int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static_size) const
+int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_static_size) const
 	{
 	const type_list* tl = type->Types();
 	const val_list* vl = 0;

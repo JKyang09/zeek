@@ -105,8 +105,8 @@ public:
 	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl);
 	DNS_Mapping(FILE* f);
 
-	int NoMapping() const		{ return no_mapping; }
-	int InitFailed() const		{ return init_failed; }
+	bool NoMapping() const		{ return no_mapping; }
+	bool InitFailed() const		{ return init_failed; }
 
 	~DNS_Mapping();
 
@@ -126,8 +126,8 @@ public:
 
 	void Save(FILE* f) const;
 
-	int Failed() const		{ return failed; }
-	int Valid() const		{ return ! failed; }
+	bool Failed() const		{ return failed; }
+	bool Valid() const		{ return ! failed; }
 
 	bool Expired() const
 		{
@@ -145,9 +145,6 @@ protected:
 	void Init(struct hostent* h);
 	void Clear();
 
-	int no_mapping;	// when initializing from a file, immediately hit EOF
-	int init_failed;
-
 	char* req_host;
 	IPAddr req_addr;
 	uint32_t req_ttl;
@@ -160,9 +157,11 @@ protected:
 	IPAddr* addrs;
 	ListVal* addrs_val;
 
-	int failed;
 	double creation_time;
 	int map_type;
+	bool no_mapping;	// when initializing from a file, immediately hit EOF
+	bool init_failed;
+	bool failed;
 };
 
 void DNS_Mgr_mapping_delete_func(void* v)
@@ -200,7 +199,7 @@ DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl)
 DNS_Mapping::DNS_Mapping(FILE* f)
 	{
 	Clear();
-	init_failed = 1;
+	init_failed = true;
 
 	req_host = 0;
 	req_ttl = 0;
@@ -210,17 +209,20 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 
 	if ( ! fgets(buf, sizeof(buf), f) )
 		{
-		no_mapping = 1;
+		no_mapping = true;
 		return;
 		}
 
 	char req_buf[512+1], name_buf[512+1];
 	int is_req_host;
+	int failed_local;
 
 	if ( sscanf(buf, "%lf %d %512s %d %512s %d %d %" PRIu32, &creation_time,
-	     &is_req_host, req_buf, &failed, name_buf, &map_type, &num_addrs,
+	     &is_req_host, req_buf, &failed_local, name_buf, &map_type, &num_addrs,
 	     &req_ttl) != 8 )
 		return;
+
+	failed = (bool)failed_local;
 
 	if ( is_req_host )
 		req_host = copy_string(req_buf);
@@ -315,8 +317,8 @@ StringVal* DNS_Mapping::Host()
 
 void DNS_Mapping::Init(struct hostent* h)
 	{
-	no_mapping = 0;
-	init_failed = 0;
+	no_mapping = false;
+	init_failed = false;
 	creation_time = current_time();
 	host_val = 0;
 	addrs_val = 0;
@@ -349,7 +351,7 @@ void DNS_Mapping::Init(struct hostent* h)
 	else
 		addrs = 0;
 
-	failed = 0;
+	failed = false;
 	}
 
 void DNS_Mapping::Clear()
@@ -359,9 +361,9 @@ void DNS_Mapping::Clear()
 	addrs = 0;
 	host_val = 0;
 	addrs_val = 0;
-	no_mapping = 0;
+	no_mapping = false;
 	map_type = 0;
-	failed = 1;
+	failed = true;
 	}
 
 void DNS_Mapping::Save(FILE* f) const
@@ -378,7 +380,7 @@ void DNS_Mapping::Save(FILE* f) const
 
 DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	{
-	did_init = 0;
+	did_init = false;
 
 	mode = arg_mode;
 
@@ -688,15 +690,15 @@ void DNS_Mgr::Resolve()
 		delete requests.remove_nth(i);
 	}
 
-int DNS_Mgr::Save()
+bool DNS_Mgr::Save()
 	{
 	if ( ! cache_name )
-		return 0;
+		return false;
 
 	FILE* f = fopen(cache_name, "w");
 
 	if ( ! f )
-		return 0;
+		return false;
 
 	Save(f, host_mappings);
 	Save(f, addr_mappings);
@@ -704,7 +706,7 @@ int DNS_Mgr::Save()
 
 	fclose(f);
 
-	return 1;
+	return true;
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm)
