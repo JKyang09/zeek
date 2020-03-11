@@ -212,14 +212,14 @@ void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
 	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
 
-	UpdateEndpointVal(orig_endp, 1);
-	UpdateEndpointVal(resp_endp, 0);
+	UpdateEndpointVal(orig_endp, true);
+	UpdateEndpointVal(resp_endp, false);
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);
 	}
 
-void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
+void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, bool is_orig)
 	{
 	bro_int_t size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
