@@ -693,7 +693,7 @@ public:
 	TableValTimer(TableVal* val, double t);
 	~TableValTimer() override;
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 	TableVal* Table()	{ return table; }
 

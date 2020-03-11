@@ -364,7 +364,7 @@ public:
 		{ Init(arg_conn, arg_timer, arg_do_expire); }
 	~ConnectionTimer() override;
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	ConnectionTimer()	{}

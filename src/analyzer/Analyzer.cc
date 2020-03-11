@@ -19,7 +19,7 @@ public:
 
 	virtual ~AnalyzerTimer();
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	AnalyzerTimer() : analyzer(), timer(), do_expire()	{}
@@ -48,7 +48,7 @@ AnalyzerTimer::~AnalyzerTimer()
 	Unref(analyzer->Conn());
 	}
 
-void AnalyzerTimer::Dispatch(double t, int is_expire)
+void AnalyzerTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire && ! do_expire )
 		return;

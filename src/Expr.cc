@@ -2027,7 +2027,7 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	}
 
 AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
-                       int arg_is_init, IntrusivePtr<Val> arg_val,
+                       bool arg_is_init, IntrusivePtr<Val> arg_val,
                        attr_list* arg_attrs)
 	: BinaryExpr(EXPR_ASSIGN, arg_is_init ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
@@ -3891,7 +3891,7 @@ ScheduleTimer::~ScheduleTimer()
 	{
 	}
 
-void ScheduleTimer::Dispatch(double /* t */, int /* is_expire */)
+void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	{
 	mgr.QueueEvent(event, std::move(args), SOURCE_LOCAL, 0, tmgr);
 	}

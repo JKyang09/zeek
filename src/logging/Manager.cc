@@ -1436,7 +1436,7 @@ public:
 
 	~RotationTimer();
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	Manager::WriterInfo* winfo;
@@ -1449,7 +1449,7 @@ RotationTimer::~RotationTimer()
 		winfo->rotation_timer = 0;
 	}
 
-void RotationTimer::Dispatch(double t, int is_expire)
+void RotationTimer::Dispatch(double t, bool is_expire)
 	{
 	winfo->rotation_timer = 0;
 

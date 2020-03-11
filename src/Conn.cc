@@ -39,7 +39,7 @@ ConnectionTimer::~ConnectionTimer()
 	Unref(conn);
 	}
 
-void ConnectionTimer::Dispatch(double t, int is_expire)
+void ConnectionTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire && ! do_expire )
 		return;

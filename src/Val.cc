@@ -1294,7 +1294,7 @@ TableValTimer::~TableValTimer()
 	table->ClearTimer(this);
 	}
 
-void TableValTimer::Dispatch(double t, int is_expire)
+void TableValTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( ! is_expire )
 		{

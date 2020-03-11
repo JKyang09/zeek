@@ -43,7 +43,7 @@ enum NetBIOS_Service {
 
 NetSessions* sessions;
 
-void IPTunnelTimer::Dispatch(double t, int is_expire)
+void IPTunnelTimer::Dispatch(double t, bool is_expire)
 	{
 	NetSessions::IPTunnelMap::const_iterator it =
 			sessions->ip_tunnels.find(tunnel_idx);

@@ -32,14 +32,14 @@ public:
 		interval = i;
 		}
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	double interval;
 	ProfileLogger* logger;
 };
 
-void ProfileTimer::Dispatch(double t, int is_expire)
+void ProfileTimer::Dispatch(double t, bool is_expire)
 	{
 	logger->Log();
 
