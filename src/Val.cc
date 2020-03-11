@@ -1457,7 +1457,7 @@ bool TableVal::Assign(Val* index, Val* new_val)
 
 bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	{
-	int is_set = table_type->IsSet();
+	bool is_set = table_type->IsSet();
 
 	if ( (is_set && new_val) || (! is_set && ! new_val) )
 		InternalWarning("bad set/table in TableVal::Assign");
@@ -1470,7 +1470,7 @@ bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	// memory allocated to the key bytes, so have to assume k is invalid
 	// from here on out.
 	delete k;
-	k = 0;
+	k = nullptr;
 
 	if ( subnets )
 		{

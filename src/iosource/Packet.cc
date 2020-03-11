@@ -592,7 +592,7 @@ RecordVal* Packet::BuildPktHdrVal() const
 	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
 	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
 
-	int is_ethernet = (link_type == DLT_EN10MB) ? 1 : 0;
+	bool is_ethernet = link_type == DLT_EN10MB;
 
 	int l3 = BifEnum::L3_UNKNOWN;
 
@@ -677,4 +677,3 @@ void Packet::Describe(ODesc* d) const
 	d->Add("->");
 	d->Add(ip.DstAddr());
 	}
-

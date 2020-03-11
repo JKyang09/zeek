@@ -439,8 +439,8 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 	if ( ! v2 )
 		return nullptr;
 
-	int is_vec1 = is_vector(v1.get());
-	int is_vec2 = is_vector(v2.get());
+	bool is_vec1 = is_vector(v1.get());
+	bool is_vec2 = is_vector(v2.get());
 
 	if ( is_vec1 && is_vec2 )
 		{ // fold pairs of elements

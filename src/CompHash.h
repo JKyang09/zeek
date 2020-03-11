@@ -82,10 +82,10 @@ protected:
 	IntrusivePtr<TypeList> type;
 	char* key;	// space for composite key
 	int size;
-	int is_singleton;	// if just one type in index
+	bool is_singleton;	// if just one type in index
 
 	// If one type, but not normal "singleton", e.g. record.
-	int is_complex_type;
+	bool is_complex_type;
 
 	InternalTypeTag singleton_tag;
 };

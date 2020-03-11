@@ -261,7 +261,7 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_ADD_FUNC:
 	case ATTR_DEL_FUNC:
 		{
-		int is_add = a->Tag() == ATTR_ADD_FUNC;
+		bool is_add = a->Tag() == ATTR_ADD_FUNC;
 
 		BroType* at = a->AttrExpr()->Type();
 		if ( at->Tag() != TYPE_FUNC )
