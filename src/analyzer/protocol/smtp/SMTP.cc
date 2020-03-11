@@ -29,8 +29,8 @@ static const char* unknown_cmd = "(UNKNOWN)";
 SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("SMTP", conn)
 	{
-	expect_sender = 0;
-	expect_recver = 1;
+	expect_sender = false;
+	expect_recver = true;
 	state = SMTP_CONNECTED;
 	last_replied_cmd = -1;
 	first_cmd = SMTP_CMD_CONN_ESTABLISHMENT;
@@ -39,9 +39,9 @@ SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 	// Some clients appear to assume pipelining is always enabled
 	// and do not bother to check whether "PIPELINING" appears in
 	// the server reply to EHLO.
-	pipelining = 1;
+	pipelining = true;
 
-	skip_data = 0;
+	skip_data = false;
 	orig_is_sender = true;
 	line_after_gap = 0;
 	mail = 0;
@@ -128,7 +128,7 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		}
 
 	// NOTE: do not use IsOrig() here, because of TURN command.
-	int is_sender = orig_is_sender ? orig : ! orig;
+	bool is_sender = orig_is_sender ? orig : ! orig;
 
 #if 0
 	###
@@ -165,7 +165,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 	const char* cmd = "";
 
 	// NOTE: do not use IsOrig() here, because of TURN command.
-	int is_sender = orig_is_sender ? orig : ! orig;
+	bool is_sender = orig_is_sender ? orig : ! orig;
 
 	if ( ! pipelining &&
 	     ((is_sender && ! expect_sender) ||
@@ -193,14 +193,14 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			cmd_code = SMTP_CMD_END_OF_DATA;
 			NewCmd(cmd_code);
 
-			expect_sender = 0;
-			expect_recver = 1;
+			expect_sender = false;
+			expect_recver = true;
 			}
 
 		else if ( state == SMTP_IN_DATA )
 			{
 			// Check "." for end of data.
-			expect_recver = 0; // ?? MAY server respond to mail data?
+			expect_recver = false; // ?? MAY server respond to mail data?
 
 			if ( line[0] == '.' )
 				++line;
@@ -237,8 +237,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 		else
 			{
-			expect_sender = 0;
-			expect_recver = 1;
+			expect_sender = false;
+			expect_recver = true;
 
 			get_word(length, line, cmd_len, cmd);
 			line = skip_whitespace(line + cmd_len, end_of_line);
@@ -246,7 +246,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 			if ( cmd_code == -1 )
 				{
-				Unexpected(1, "unknown command", cmd_len, cmd);
+				Unexpected(true, "unknown command", cmd_len, cmd);
 				cmd = 0;
 				}
 			else
@@ -327,8 +327,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				line = skip_whitespace(line+3, end_of_line);
 
 				pending_reply = 0;
-				expect_sender = 1;
-				expect_recver = 0;
+				expect_sender = true;
+				expect_recver = false;
 				}
 
 			// Generate events.
@@ -400,7 +400,7 @@ void SMTP_Analyzer::StartTLS()
 	// STARTTLS was succesful. Remove SMTP support analyzers, add SSL
 	// analyzer, and throw event signifying the change.
 	state = SMTP_IN_TLS;
-	expect_sender = expect_recver = 1;
+	expect_sender = expect_recver = true;
 
 	RemoveSupportAnalyzer(cl_orig);
 	RemoveSupportAnalyzer(cl_resp);
@@ -753,8 +753,8 @@ void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code, bool o
 				orig_is_sender = ! orig_is_sender;
 
 				state = SMTP_CONNECTED;
-				expect_sender = 0;
-				expect_recver = 1;
+				expect_sender = false;
+				expect_recver = true;
 				break;
 
 			case 502:
@@ -829,7 +829,7 @@ void SMTP_Analyzer::ProcessExtension(int ext_len, const char* ext)
 		return;
 
 	if ( istrequal(ext, "PIPELINING", ext_len) )
-		pipelining = 1;
+		pipelining = true;
 	}
 
 int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
@@ -862,15 +862,15 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
 		});
 	}
 
-void SMTP_Analyzer::Unexpected(const int is_sender, const char* msg,
+void SMTP_Analyzer::Unexpected(bool is_sender, const char* msg,
 				int detail_len, const char* detail)
 	{
 	// Either party can send a line after an unexpected line.
-	expect_sender = expect_recver = 1;
+	expect_sender = expect_recver = true;
 
 	if ( smtp_unexpected )
 		{
-		int is_orig = is_sender;
+		bool is_orig = is_sender;
 		if ( ! orig_is_sender )
 			is_orig = ! is_orig;
 
@@ -893,7 +893,7 @@ void SMTP_Analyzer::UnexpectedCommand(const int cmd_code, const int reply_code)
 				SMTP_CMD_WORD(cmd_code), reply_code, state);
 	if ( len > (int) sizeof(buf) )
 		len = sizeof(buf);
-	Unexpected (1, "unexpected command", len, buf);
+	Unexpected(true, "unexpected command", len, buf);
 	}
 
 void SMTP_Analyzer::UnexpectedReply(const int cmd_code, const int reply_code)
@@ -904,7 +904,7 @@ void SMTP_Analyzer::UnexpectedReply(const int cmd_code, const int reply_code)
 	int len = snprintf(buf, sizeof(buf),
 				"%d state = %d, last command = %s",
 				reply_code, state, SMTP_CMD_WORD(cmd_code));
-	Unexpected (1, "unexpected reply", len, buf);
+	Unexpected(true, "unexpected reply", len, buf);
 	}
 
 void SMTP_Analyzer::ProcessData(int length, const char* line)
@@ -915,7 +915,7 @@ void SMTP_Analyzer::ProcessData(int length, const char* line)
 void SMTP_Analyzer::BeginData(bool orig)
 	{
 	state = SMTP_IN_DATA;
-	skip_data = 0; // reset the flag at the beginning of the mail
+	skip_data = false; // reset the flag at the beginning of the mail
 	if ( mail != 0 )
 		{
 		Weird("smtp_nested_mail_transaction");

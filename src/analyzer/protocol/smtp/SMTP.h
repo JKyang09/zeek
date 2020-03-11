@@ -70,21 +70,21 @@ protected:
 
 	void RequestEvent(int cmd_len, const char* cmd,
 				int arg_len, const char* arg);
-	void Unexpected(const int is_orig, const char* msg,
+	void Unexpected(bool is_sender, const char* msg,
 				int detail_len, const char* detail);
 	void UnexpectedCommand(const int cmd_code, const int reply_code);
 	void UnexpectedReply(const int cmd_code, const int reply_code);
 	void StartTLS();
 
 	bool orig_is_sender;
-	int expect_sender, expect_recver;
+	bool expect_sender, expect_recver;
+	bool pipelining;			// whether pipelining is supported
 	int state;
 	int last_replied_cmd;
 	int first_cmd;			// first un-replied SMTP cmd, or -1
 	int pending_reply;		// code assoc. w/ multi-line reply, or 0
-	int pipelining;			// whether pipelining is supported
 	list<int> pending_cmd_q;	// to support pipelining
-	int skip_data;			// whether to skip message body
+	bool skip_data;			// whether to skip message body
 	BroString* line_after_gap;	// last line before the first reply
 					// after a gap
 
@@ -95,4 +95,4 @@ private:
 	tcp::ContentLine_Analyzer* cl_resp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
