@@ -28,12 +28,12 @@ public:
 
 	unsigned int Code() const	{ return code; }
 
-	int IsActive() const		{ return active; }
+	bool IsActive() const		{ return active; }
 
-	int SaidWill() const	{ return flags & OPT_SAID_WILL; }
-	int SaidWont() const	{ return flags & OPT_SAID_WONT; }
-	int SaidDo() const	{ return flags & OPT_SAID_DO; }
-	int SaidDont() const	{ return flags & OPT_SAID_DONT; }
+	bool SaidWill() const	{ return flags & OPT_SAID_WILL; }
+	bool SaidWont() const	{ return flags & OPT_SAID_WONT; }
+	bool SaidDo() const	{ return flags & OPT_SAID_DO; }
+	bool SaidDont() const	{ return flags & OPT_SAID_DONT; }
 
 	void SetWill()	{ flags |= OPT_SAID_WILL; }
 	void SetWont()	{ flags |= OPT_SAID_WONT; }
@@ -43,7 +43,7 @@ public:
 	void RecvOption(unsigned int type);
 	virtual void RecvSubOption(u_char* data, int len);
 
-	virtual void SetActive(int is_active);
+	virtual void SetActive(bool is_active);
 
 	const NVT_Analyzer* Endpoint() const	{ return endp; }
 
@@ -116,7 +116,7 @@ public:
 		: TelnetOption(arg_endp, TELNET_OPTION_BINARY)
 			{ }
 
-	void SetActive(int is_active) override;
+	void SetActive(bool is_active) override;
 
 protected:
 	void InconsistentOption(unsigned int type) override;
@@ -156,10 +156,10 @@ protected:
 
 	NVT_Analyzer* peer;
 
-	int pending_IAC;	// true if we're working on an option/IAC
+	bool pending_IAC = false;	// true if we're working on an option/IAC
 	int IAC_pos;		// where the IAC was seen
-	int is_suboption;	// true if current option is suboption
-	int last_was_IAC;	// for scanning suboptions
+	bool is_suboption = false;	// true if current option is suboption
+	bool last_was_IAC = false;	// for scanning suboptions
 
 	int binary_mode, encrypting_mode;
 	int authentication_has_been_accepted;	// if true, we accepted peer's authentication
@@ -169,4 +169,4 @@ protected:
 	int num_options;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

@@ -15,7 +15,7 @@
 
 using namespace analyzer::rpc;
 
-int MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
+bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100005 )
 		Weird("bad_RPC_program", fmt("%d", c->Program()));
@@ -54,7 +54,7 @@ int MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 		// Return 1 so that replies to unprocessed calls will still
 		// be processed, and the return status extracted.
-		return 1;
+		return true;
 	}
 
 	if ( ! buf )
@@ -66,15 +66,15 @@ int MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		// Unref() the call arguments, and we are fine.
 		Unref(callarg);
 		callarg = 0;
-		return 0;
+		return false;
 		}
 
 	c->AddVal(callarg); // It's save to AddVal(0).
 
-	return 1;
+	return true;
 	}
 
-int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
+bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			       const u_char*& buf, int& n, double start_time,
 			       double last_time, int reply_len)
 	{
@@ -143,7 +143,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 			event = mount_proc_not_implemented;
 			}
 		else
-			return 0;
+			return false;
 	}
 
 	if ( rpc_success && ! buf )
@@ -152,7 +152,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		// also comments in RPC_BuildCall.
 		Unref(reply);
 		reply = 0;
-		return 0;
+		return false;
 		}
 
 	// Note: if reply == 0, it won't be added to the val_list for the
@@ -178,10 +178,10 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		}
 	else
 		Unref(reply);
-	return 1;
+	return true;
 	}
 
-val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c, 
+val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 		      BifEnum::rpc_status rpc_status,
 				      BifEnum::MOUNT3::status_t mount_status,
 				      double rep_start_time,

@@ -101,10 +101,10 @@ RPC_CallInfo::~RPC_CallInfo()
 	Unref(v);
 	}
 
-int RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
+bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
 	{
 	if ( n != call_n )
-		return 0;
+		return false;
 
 	return memcmp((const void*) call_buf, (const void*) buf, call_n) == 0;
 	}
@@ -122,7 +122,7 @@ RPC_Interpreter::~RPC_Interpreter()
 	}
 
 int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
-				int is_orig, double start_time, double last_time)
+				bool is_orig, double start_time, double last_time)
 	{
 	uint32_t xid = extract_XDR_uint32(buf, n);
 	uint32_t msg_type = extract_XDR_uint32(buf, n);

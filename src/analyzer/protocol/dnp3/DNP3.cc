@@ -456,4 +456,3 @@ void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, ui
 		throw;
 		}
 	}
-

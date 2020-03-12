@@ -57,7 +57,7 @@ SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 	AddSupportAnalyzer(cl_resp);
 	}
 
-void SMTP_Analyzer::ConnectionFinished(int half_finished)
+void SMTP_Analyzer::ConnectionFinished(bool half_finished)
 	{
 	tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 

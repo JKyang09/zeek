@@ -58,7 +58,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		peer->SetWill();
 
 		if ( SaidDo() )
-			peer->SetActive(1);
+			peer->SetActive(true);
 		break;
 
 	case TELNET_OPT_WONT:
@@ -68,7 +68,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		peer->SetWont();
 
 		if ( SaidDont() )
-			peer->SetActive(0);
+			peer->SetActive(false);
 		break;
 
 	case TELNET_OPT_DO:
@@ -78,7 +78,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		peer->SetDo();
 
 		if ( SaidWill() )
-			SetActive(1);
+			SetActive(true);
 		break;
 
 	case TELNET_OPT_DONT:
@@ -88,7 +88,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		peer->SetDont();
 
 		if ( SaidWont() )
-			SetActive(0);
+			SetActive(false);
 		break;
 
 	default:
@@ -102,7 +102,7 @@ void TelnetOption::RecvSubOption(u_char* /* data */, int /* len */)
 	{
 	}
 
-void TelnetOption::SetActive(int is_active)
+void TelnetOption::SetActive(bool is_active)
 	{
 	active = is_active;
 	}
@@ -366,7 +366,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 	return env;
 	}
 
-void TelnetBinaryOption::SetActive(int is_active)
+void TelnetBinaryOption::SetActive(bool is_active)
 	{
 	endp->SetBinaryMode(is_active);
 	active = is_active;
@@ -382,7 +382,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 
 NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
 	: tcp::ContentLine_Analyzer("NVT", conn, orig),
-	peer(), pending_IAC(), IAC_pos(), is_suboption(), last_was_IAC(),
+	peer(), IAC_pos(), is_suboption(), last_was_IAC(),
 	binary_mode(), encrypting_mode(), authentication_has_been_accepted(),
 	auth_name(), options(), num_options()
 	{
@@ -728,4 +728,3 @@ void NVT_Analyzer::BadOptionTermination(unsigned int /* code */)
 	{
 	Event(bad_option_termination);
 	}
-
