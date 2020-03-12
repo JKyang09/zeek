@@ -56,7 +56,7 @@ NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(Analyzer* arg_analyzer)
 	}
 
 int NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
-				const u_char* data, int len, int is_query)
+				const u_char* data, int len, bool is_query)
 	{
 	if ( netbios_session_message )
 		{
@@ -105,7 +105,7 @@ int NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 	}
 
 int NetbiosSSN_Interpreter::ParseDatagram(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	//if ( smb_session )
 	//	{
@@ -117,7 +117,7 @@ int NetbiosSSN_Interpreter::ParseDatagram(const u_char* data, int len,
  	}
 
 int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
-						int is_query)
+						bool is_query)
  	{
 	// FIND THE NUL-TERMINATED NAME STRINGS HERE!
 	// Not sure what's in them, so we don't keep them currently.
@@ -140,7 +140,7 @@ int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 	}
 
 int NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	NetbiosSSN_RawMsgHdr hdr(data, len);
 
@@ -158,7 +158,7 @@ int NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
 	}
 
 int NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 
 	NetbiosDGM_RawMsgHdr hdr(data, len);
@@ -179,7 +179,7 @@ int NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len,
 
 
 int NetbiosSSN_Interpreter::ParseSessionMsg(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	if ( len < 4 || strncmp((const char*) data, "\xffSMB", 4) )
 		{
@@ -204,7 +204,7 @@ int NetbiosSSN_Interpreter::ParseSessionMsg(const u_char* data, int len,
 	}
 
 int NetbiosSSN_Interpreter::ParseSambaMsg(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	return 0;
 	}
@@ -249,7 +249,7 @@ int NetbiosSSN_Interpreter::ConvertName(const u_char* name, int name_len,
 	}
 
 int NetbiosSSN_Interpreter::ParseSessionReq(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	if ( ! is_query )
 		analyzer->Weird("netbios_server_session_request");
@@ -266,7 +266,7 @@ int NetbiosSSN_Interpreter::ParseSessionReq(const u_char* data, int len,
 	}
 
 int NetbiosSSN_Interpreter::ParseSessionPosResp(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	if ( is_query )
 		analyzer->Weird("netbios_client_session_reply");
@@ -277,7 +277,7 @@ int NetbiosSSN_Interpreter::ParseSessionPosResp(const u_char* data, int len,
 	}
 
 int NetbiosSSN_Interpreter::ParseSessionNegResp(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	if ( is_query )
 		analyzer->Weird("netbios_client_session_reply");
@@ -306,7 +306,7 @@ int NetbiosSSN_Interpreter::ParseSessionNegResp(const u_char* data, int len,
 	}
 
 int NetbiosSSN_Interpreter::ParseRetArgResp(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	if ( is_query )
 		analyzer->Weird("netbios_client_session_reply");
@@ -317,7 +317,7 @@ int NetbiosSSN_Interpreter::ParseRetArgResp(const u_char* data, int len,
 	}
 
 int NetbiosSSN_Interpreter::ParseKeepAlive(const u_char* data, int len,
-						int is_query)
+						bool is_query)
 	{
 	Event(netbios_session_keepalive, data, len);
 
@@ -510,7 +510,7 @@ void NetbiosSSN_Analyzer::EndpointEOF(bool orig)
 	}
 
 void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-				tcp::TCP_Endpoint* peer, int gen_event)
+				tcp::TCP_Endpoint* peer, bool gen_event)
 	{
 	tcp::TCP_ApplicationAnalyzer::ConnectionClosed(endpoint, peer, gen_event);
 
