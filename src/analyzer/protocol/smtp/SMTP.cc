@@ -334,7 +334,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			// Generate events.
 			if ( smtp_reply && reply_code >= 0 )
 				{
-				const int cmd_code = last_replied_cmd;
+				int cmd_code = last_replied_cmd;
 				switch ( cmd_code ) {
 					case SMTP_CMD_CONN_ESTABLISHMENT:
 						cmd = ">";
@@ -372,7 +372,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 		}
 	}
 
-void SMTP_Analyzer::NewCmd(const int cmd_code)
+void SMTP_Analyzer::NewCmd(int cmd_code)
 	{
 	if ( pipelining )
 		{
@@ -427,7 +427,7 @@ void SMTP_Analyzer::StartTLS()
 // we want to understand the behavior of SMTP and check how far it may
 // deviate from our knowledge.
 
-void SMTP_Analyzer::NewReply(const int reply_code, bool orig)
+void SMTP_Analyzer::NewReply(int reply_code, bool orig)
 	{
 	if ( state == SMTP_AFTER_GAP && reply_code > 0 )
 		{
@@ -440,7 +440,7 @@ void SMTP_Analyzer::NewReply(const int reply_code, bool orig)
 		}
 
 	// Make all parameters constants.
-	const int cmd_code = first_cmd;
+	int cmd_code = first_cmd;
 
 	// To recover from a gap, we detect replies -- the critical
 	// assumptions here are 1) receiver does not reply during a DATA
@@ -465,9 +465,9 @@ void SMTP_Analyzer::NewReply(const int reply_code, bool orig)
 // in the RPC), and as a result we have to update the state following
 // the commands in addition to the replies.
 
-void SMTP_Analyzer::UpdateState(const int cmd_code, const int reply_code, bool orig)
+void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 	{
-	const int st = state;
+	int st = state;
 
 	if ( st == SMTP_QUIT && reply_code == 0 )
 		UnexpectedCommand(cmd_code, reply_code);
@@ -883,7 +883,7 @@ void SMTP_Analyzer::Unexpected(bool is_sender, const char* msg,
 		}
 	}
 
-void SMTP_Analyzer::UnexpectedCommand(const int cmd_code, const int reply_code)
+void SMTP_Analyzer::UnexpectedCommand(int cmd_code, int reply_code)
 	{
 	// If this happens, please fix the SMTP state machine!
 	// ### Eventually, these should be turned into "weird" events.
@@ -896,7 +896,7 @@ void SMTP_Analyzer::UnexpectedCommand(const int cmd_code, const int reply_code)
 	Unexpected(true, "unexpected command", len, buf);
 	}
 
-void SMTP_Analyzer::UnexpectedReply(const int cmd_code, const int reply_code)
+void SMTP_Analyzer::UnexpectedReply(int cmd_code, int reply_code)
 	{
 	// If this happens, please fix the SMTP state machine!
 	// ### Eventually, these should be turned into "weird" events.

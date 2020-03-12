@@ -56,12 +56,12 @@ public:
 protected:
 
 	void ProcessLine(int length, const char* line, bool orig);
-	void NewCmd(const int cmd_code);
-	void NewReply(const int reply_code, bool orig);
+	void NewCmd(int cmd_code);
+	void NewReply(int reply_code, bool orig);
 	void ProcessExtension(int ext_len, const char* ext);
 	void ProcessData(int length, const char* line);
 
-	void UpdateState(const int cmd_code, const int reply_code, bool orig);
+	void UpdateState(int cmd_code, int reply_code, bool orig);
 
 	void BeginData(bool orig);
 	void EndData();
@@ -72,8 +72,8 @@ protected:
 				int arg_len, const char* arg);
 	void Unexpected(bool is_sender, const char* msg,
 				int detail_len, const char* detail);
-	void UnexpectedCommand(const int cmd_code, const int reply_code);
-	void UnexpectedReply(const int cmd_code, const int reply_code);
+	void UnexpectedCommand(int cmd_code, int reply_code);
+	void UnexpectedReply(int cmd_code, int reply_code);
 	void StartTLS();
 
 	bool orig_is_sender;
